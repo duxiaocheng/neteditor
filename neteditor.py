@@ -32,9 +32,17 @@ import hexdump
 
 my_drop_flag = 0
 
-def ch_payload_and_send(pkt):
-    pkt[TCP].payload == "hack"
-    send(pkt, verbose)
+def ch_payload_and_send(ip, udp):
+    tip  = "Change payload and then send it again\n"
+    tip += "Warning: for multi NIC, the changed package maybe can be sent out.\n"
+    tip += "As a workaround, you can disable other eths with command 'ifconfig eth2 down'"
+    print(tip)
+
+    #print(conf.route)
+    newdata = "this is changed payload data!\n"
+    pkt = IP(src=ip.src, dst=ip.dst)/UDP(sport=udp.sport, dport=udp.dport)/newdata
+    #print(ls(pkt))
+    send(pkt)
 
 def callback_process(pkt):
     global my_drop_flag
@@ -67,7 +75,9 @@ def callback_process(pkt):
     print("UDP dport: " + str(udp.dport))
     print("UDP length: " + str(udp.len))
     print("UDP payload: " + str(udp.payload))
- 
+
+    ch_payload_and_send(ip, udp)
+
     data = str(udp.payload)
 
     if (data == "start drop\n"):
@@ -99,3 +109,5 @@ if __name__ == "__main__":
     print("Welcome to IP Package Editor@Linux!")
     os.system('iptables -I OUTPUT -p udp --dport 50001 -j NFQUEUE --queue-num 0')
     main()
+
+
